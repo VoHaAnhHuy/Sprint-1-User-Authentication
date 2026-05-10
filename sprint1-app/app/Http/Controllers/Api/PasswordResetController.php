@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\ResetPasswordRequest;
 use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -16,13 +17,17 @@ class PasswordResetController extends Controller
      * Gửi link reset password qua email
      *
      * POST /api/forgot-password
+     *
+     * @param  ForgotPasswordRequest  $request  — Validate: email
+     * @return JsonResponse
      */
-    public function forgotPassword(ForgotPasswordRequest $request)
+    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
     {
-        // Data đã được validate bởi ForgotPasswordRequest
-        $status = Password::sendResetLink(
-            $request->validated()
-        );
+        // ForgotPasswordRequest đã tự động validate email
+        // Nếu validation fail → tự động trả về 422 với thông báo lỗi tiếng Việt
+        $validated = $request->validated();
+
+        $status = Password::sendResetLink($validated);
 
         if ($status === Password::RESET_LINK_SENT) {
             return response()->json([
@@ -39,12 +44,18 @@ class PasswordResetController extends Controller
      * Reset password bằng token
      *
      * POST /api/reset-password
+     *
+     * @param  ResetPasswordRequest  $request  — Validate: token, email, password (min 8, confirmed)
+     * @return JsonResponse
      */
-    public function resetPassword(ResetPasswordRequest $request)
+    public function resetPassword(ResetPasswordRequest $request): JsonResponse
     {
-        // Data đã được validate bởi ResetPasswordRequest
+        // ResetPasswordRequest đã tự động validate token, email, password
+        // Nếu validation fail → tự động trả về 422 với thông báo lỗi tiếng Việt
+        $validated = $request->validated();
+
         $status = Password::reset(
-            $request->validated(),
+            $validated,
             function ($user, $password) {
                 $user->forceFill([
                     'password'       => Hash::make($password),
@@ -66,3 +77,4 @@ class PasswordResetController extends Controller
         ], 400);
     }
 }
+

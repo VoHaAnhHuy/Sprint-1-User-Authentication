@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\RegisterRequest;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -15,11 +16,17 @@ class AuthController extends Controller
      * Đăng ký tài khoản mới
      *
      * POST /api/register
+     *
+     * @param  RegisterRequest  $request  — Validate: name, email (unique), password (min 8, confirmed)
+     * @return JsonResponse
      */
-    public function register(RegisterRequest $request)
+    public function register(RegisterRequest $request): JsonResponse
     {
-        // Data đã được validate bởi RegisterRequest trước khi vào đây
-        $user = User::create($request->validated());
+        // RegisterRequest đã tự động validate name, email, password
+        // Nếu validation fail → tự động trả về 422 với thông báo lỗi tiếng Việt
+        $validated = $request->validated();
+
+        $user = User::create($validated);
 
         // Gửi email xác nhận
         $user->sendEmailVerificationNotification();
@@ -34,14 +41,20 @@ class AuthController extends Controller
      * Đăng nhập
      *
      * POST /api/login
+     *
+     * @param  LoginRequest  $request  — Validate: email, password
+     * @return JsonResponse
      */
-    public function login(LoginRequest $request)
+    public function login(LoginRequest $request): JsonResponse
     {
-        // Data đã được validate bởi LoginRequest
-        $user = User::where('email', $request->email)->first();
+        // LoginRequest đã tự động validate email & password
+        // Nếu validation fail → tự động trả về 422 với thông báo lỗi tiếng Việt
+        $validated = $request->validated();
+
+        $user = User::where('email', $validated['email'])->first();
 
         // Kiểm tra user tồn tại + password đúng
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (!$user || !Hash::check($validated['password'], $user->password)) {
             return response()->json([
                 'message' => 'Email hoặc mật khẩu không đúng.',
             ], 401);
@@ -69,8 +82,11 @@ class AuthController extends Controller
      *
      * POST /api/logout
      * Header: Authorization: Bearer {token}
+     *
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
         $request->user()->currentAccessToken()->delete();
 

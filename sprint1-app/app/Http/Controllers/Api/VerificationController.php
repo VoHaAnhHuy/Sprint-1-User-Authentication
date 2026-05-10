@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Auth\Events\Verified;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class VerificationController extends Controller
@@ -13,8 +14,13 @@ class VerificationController extends Controller
      * Xác nhận email
      *
      * GET /api/email/verify/{id}/{hash}
+     *
+     * @param  Request  $request
+     * @param  int      $id    — ID của user
+     * @param  string   $hash  — SHA1 hash của email
+     * @return JsonResponse
      */
-    public function verify(Request $request, $id, $hash)
+    public function verify(Request $request, $id, $hash): JsonResponse
     {
         $user = User::findOrFail($id);
 
@@ -47,8 +53,11 @@ class VerificationController extends Controller
      *
      * POST /api/email/resend
      * Header: Authorization: Bearer {token}
+     *
+     * @param  Request  $request
+     * @return JsonResponse
      */
-    public function resend(Request $request)
+    public function resend(Request $request): JsonResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
             return response()->json([
@@ -63,3 +72,4 @@ class VerificationController extends Controller
         ]);
     }
 }
+
