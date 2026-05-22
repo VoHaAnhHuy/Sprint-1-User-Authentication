@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PasswordResetController;
+use App\Http\Controllers\Api\ProductController;
+use App\Http\Controllers\Api\VariantController;
 use App\Http\Controllers\Api\VerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,4 +35,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Gửi lại email xác nhận
     Route::post('/email/resend', [VerificationController::class, 'resend']);
+
+    // ===================== Product CRUD =====================
+    Route::apiResource('products', ProductController::class);
+
+    // ===================== Variant CRUD (nested) =====================
+    Route::apiResource('products.variants', VariantController::class);
 });
