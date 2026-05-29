@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->text('description');
             $table->string('slug')->unique();
             $table->enum('status', ['draft', 'published'])->default('published');
+            $table->string('tags')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });

@@ -103,6 +103,13 @@ class VariantController extends Controller
             abort(404);
         }
 
+        // Không cho xóa variant cuối cùng của product
+        if ($product->variants()->count() <= 1) {
+            return response()->json([
+                'message' => 'Không thể xóa variant cuối cùng. Mỗi sản phẩm phải có ít nhất 1 variant.',
+            ], 422);
+        }
+
         $variant->delete();
 
         return response()->json(null, 204);

@@ -17,7 +17,7 @@ class ProductController extends Controller
      * Lấy danh sách products (có phân trang)
      *
      * GET /api/products
-     * Query params: ?search=, ?status=, ?sort_by=, ?order=, ?per_page=
+     * Query params: ?search=, ?status=, ?tags=, ?sort_by=, ?order=, ?per_page=
      *
      * @return AnonymousResourceCollection
      */
@@ -37,6 +37,11 @@ class ProductController extends Controller
         // Lọc theo status
         if ($request->has('status')) {
             $query->where('status', $request->input('status'));
+        }
+
+        // Lọc theo tags
+        if ($request->has('tags')) {
+            $query->where('tags', 'like', '%' . $request->input('tags') . '%');
         }
 
         // Sắp xếp
